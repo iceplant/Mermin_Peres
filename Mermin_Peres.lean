@@ -1,8 +1,12 @@
 import init.data.nat.basic
 set_option class.instance_max_depth 15000000
 
-def myIsEven (n : ℕ) : bool := n = (n/2)*2
-def myIsOdd (n : ℕ) : bool := ¬ (n = (n/2)*2)
+--Do I want these to be bools or Props?
+def myIsEven (n : ℕ) : Prop := n = (n/2)*2
+def myIsOdd (n : ℕ) : Prop := ¬ (n = (n/2)*2)
+
+#reduce myIsEven 2
+#eval myIsEven 2
 
 --Alice only sees r and Bob only sees c. The strategy isn't (r,c) → (...) but two maps, r→(r1 r2 r3) and c → (c1 c2 c3)
 --I'm using 0 and 1 instead of Green and Red as the two options to fill squares. This makes checking parity of strategies easier
@@ -49,7 +53,7 @@ def isStrategyrc (r c : ℕ) (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ �
         c1 := (strategy.2 c).1,
         c2 := (strategy.2 c).2.1,
         c3 := (strategy.2 c).2.2
-        in myIsEven(r1 + r2 + r3) ∧ myIsOdd(c1 + c2 + c3)
+        in myIsEven(r1 + r2 + r3) ∧ myIsOdd(c1 + c2 + c3)  --What doesn't lean like about this????????????????
 
 --checks that the even/odd criteria are met for all values of r,c ∈ {1,2,3}
 def isStrategy (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ → ℕ × ℕ × ℕ))) : bool := 
@@ -88,7 +92,11 @@ lemma rSumEven (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ → ℕ × ℕ �
     rw myIsEven,
     intro isStrat,
     rw isStrategy at isStrat,
+    repeat {rw isStrategyrc at isStrat},
+    repeat {rw rStrat},
+    repeat {rw cStrat},
     simp,
+    --how do I get just the myIsEven part of isStrategyrc and then combine
     sorry,
     end
 
@@ -98,8 +106,11 @@ lemma cSumOdd (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ → ℕ × ℕ ×
     rw cSum,
     rw myIsOdd,
     intro isStrat,
-    rw isStrategy at isStrat,
+    repeat {rw isStrategyrc at isStrat},
+    repeat {rw rStrat},
+    repeat {rw cStrat},
     simp,
+    --how do I get just the myIsOdd part of isStrategyrc and then combine
     sorry,
     end
 
@@ -109,7 +120,11 @@ begin
 intro isStrat,
 rw rSum,
 rw cSum,
+cases isStrat with hisStrat hrcAlign,
+--rw isStrategy at hisStrat, --don't need this because we just want the alignments to show equality
+rw rcAlign at hrcAlign,
 simp,
+--how do I sum everything in hrcAlign?
 sorry,
 end
 
@@ -122,8 +137,8 @@ intro heq,
 rw myIsEven at ha,
 rw myIsOdd at hb,
 rw ← heq at hb,
-sorry,
 apply hb,
+exact ha,
 end
 
 --given a strategy, Alice's and Bob's strategies must sum to the same thing, but one sum is even and the other is odd, so this is impossible
@@ -133,7 +148,7 @@ intro h,
 cases h with hisStrat hrcAlign,
 have hrSumEven := rSumEven(strategy) hisStrat,
 have hcSumOdd := cSumOdd(strategy) hisStrat,
-have hrSum_eq_cSum := rSum_eq_cSum(strategy)(hisStrat ∧ rcAlign),
+have hrSum_eq_cSum := rSum_eq_cSum(strategy)(hisStrat ∧ rcAlign),  --Why is this not working??????????????????????
 have hrSum_neq_cSum := even_neq_odd (rSum strategy) (cSum strategy) (hrSumEven ∧ hcSumOdd),
 apply hrSum_neq_cSum,
 exact hrSum_eq_cSum,
