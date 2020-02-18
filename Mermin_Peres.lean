@@ -7,6 +7,7 @@ import data.nat.parity
 import data.finset
 import data.fintype
 import algebra.big_operators
+import data.real.basic
 set_option class.instance_max_depth 15000000
 
 
@@ -145,6 +146,7 @@ rw board,
 rw board,
 rw sampleB,
 rw consistent at h,
+ext i,
 rw h, --Logically this should work and seems pretty simple. How do I tell lean to do this???????????
 end
 
@@ -194,6 +196,35 @@ def row_sum {m n : nat} (board : fin m → fin n → nat) : nat := matrix_sum (s
 
 def col_sum {m n : nat} (board : fin m → fin n → nat) : nat := matrix_sum (sampleB board)
 
+--how does this use sorry?????
+theorem sum_univ_fin_eq_sum_range (n : ℕ) (f : fin n → ℝ) : 
+  finset.sum finset.univ f = (finset.range n).sum (λ i, if hi : i < n then f ⟨i, hi⟩ else 0) :=
+begin
+  set F : ℕ → ℝ := λ i, if hi : i < n then f ⟨i, hi⟩ else 0 with hF,
+  have H : f = λ (i : fin n), F (i.val),
+  { ext i,
+    rw hF,
+    show f i = dite (i.val < n) (λ (hi : i.val < n), f ⟨i.val, hi⟩) (λ (hi : ¬i.val < n), 0),
+    rw dif_pos i.is_lt,
+    cases i, refl,
+  },
+  rw H,
+  rw ←finset.sum_image,
+  { congr',
+    -- ⊢ finset.image (λ (x : fin n), x.val) finset.univ = finset.range n
+    ext j, -- sigh
+    rw [finset.mem_range, finset.mem_image],
+    split,
+      rintro ⟨⟨j,hj⟩, _, rfl⟩,
+      exact hj,
+    intro hj,
+    use ⟨j, hj⟩,
+    split, apply finset.mem_univ, refl
+  },
+  intros _ _ _ _,
+  exact fin.eq_of_veq,
+end
+
 lemma row_sum_eq_col_sum {m n : nat} (board : fin m → fin n → nat) : row_sum board = col_sum board
 := 
 begin
@@ -203,7 +234,9 @@ rw matrix_sum,
 rw matrix_sum,
 rw sampleB,
 rw sampleA,
-simp,
+have h := sum_univ_fin_eq_sum_range,
+sorry,
+-- finset.sum_comm,
 end
 
 theorem noStrategyMN2 {m n : nat} (strategyA : fin m → fin n → nat) (strategyB: fin n → fin m → nat) : 
@@ -213,8 +246,9 @@ begin
 intro h,
 cases h with c y,
 cases y with even odd,
-have x := even_strategy_implies_even_rows strategyA strategyB (c ∧ even),
-have y := odd_strategy_implies_odd_cols strategyA strategyB odd,
+have cEven := even,
+have x := even_strategy_implies_even_rows strategyA strategyB (c ∧ even),  --why is this not ok???????
+have y := odd_strategy_implies_odd_cols strategyA strategyB (c ∧ even),
 end
 
 
