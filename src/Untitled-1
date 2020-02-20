@@ -1,0 +1,14 @@
+import system.io
+variable [io.interface]
+open nat io
+
+meta def m91 : ℕ → ℕ
+| n := if n > 100 then n - 10 else m91 (m91 (n + 11))
+
+meta def print_m91 : ℕ → io unit
+| 0        := return ()
+| (succ n) := print_m91 n >>
+              put_str ("m91 " ++ nat.to_string n ++ " = " ++ 
+                       nat.to_string (m91 n) ++ "\n")
+
+#eval print_m91 120
