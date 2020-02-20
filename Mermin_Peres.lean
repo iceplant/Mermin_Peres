@@ -1,7 +1,6 @@
 -- import init.data.nat.basic
 -- import init.algebra.ring
 -- import init.algebra.norm_num 
-import init 
 import tactic
 import data.nat.parity
 import data.finset
@@ -50,9 +49,6 @@ def checkStrategy (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ → ℕ × �
 
 --given a strategy, we can't have it satisfy all the conditions
 
-theorem odd_add_odd {m n} : ¬ nat.even m → ¬ nat.even n → nat.even (m + n) := sorry
-theorem odd_add_even {m n} : ¬ nat.even m → nat.even n → ¬ nat.even (m + n) := sorry
-theorem even_add_even {m n} : nat.even m → nat.even n → nat.even (m + n) := sorry
 
 theorem noStrategy2 (strategy : ((ℕ → ℕ × ℕ × ℕ) × (ℕ → ℕ × ℕ × ℕ))) : ¬ (checkStrategy (strategy)) :=
 begin
@@ -117,7 +113,10 @@ end
 
 
 
-
+theorem q : 1 = 1 ↔ true :=
+begin
+squeeze_simp,
+end
 
 
 ----Method 2: show sampling---
@@ -159,16 +158,15 @@ def even_strategy {m n : nat} (strategyA : fin m → fin n → nat) : Prop := (�
 def odd_strategy {m n : nat} (strategyB : fin n → fin m → nat) : Prop := (∀ (c : fin n), ¬ (finset.univ.sum (strategyB c)).even)
 
 lemma even_strategy_implies_even_rows {m n : nat} (strategyA : fin m → fin n → nat) (strategyB : fin n → fin m → nat) 
-: ((consistent strategyA strategyB) ∧ even_strategy strategyA) → each_row_sum_even (board strategyA strategyB) 
+: (consistent strategyA strategyB) → (even_strategy strategyA) → each_row_sum_even (board strategyA strategyB) 
 :=
 begin
 rw even_strategy,
 rw each_row_sum_even,
 rw sampleA,
 rw board,
-intro h,
-have h := h.right,
-exact h,
+intros h1 h2,
+exact h2,
 end
 
 --In order to talk about a board we need to assume the two strategies are consistent. Or else we need to define the board differently to allowfor this
@@ -247,7 +245,7 @@ intro h,
 cases h with c y,
 cases y with even odd,
 have cEven := even,
-have x := even_strategy_implies_even_rows strategyA strategyB (c ∧ even),  --why is this not ok???????
+have x := even_strategy_implies_even_rows strategyA strategyB c even,  --why is this not ok???????
 have y := odd_strategy_implies_odd_cols strategyA strategyB (c ∧ even),
 end
 
